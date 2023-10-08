@@ -1,13 +1,15 @@
 # Install and load the required packages
 install.packages("rgbif")
+install.packages("leaflet")
 library(rgbif)
+library(leaflet)
 
 # Define the bounding box coordinates for Parc naturel Hautes Fagnes-Eifel
 bbox <- c(
-  min_longitude = 6.1064,
+  min_longitude =  5.919477,
   min_latitude = 50.4374,
   max_longitude = 6.2894,
-  max_latitude = 50.5398
+  max_latitude = 50.7
 )
 
 # Search for bird occurrences in the specified bounding box
@@ -17,6 +19,7 @@ occ_search_result <- occ_search(
                    bbox["max_longitude"], " ", bbox["max_latitude"], ",", 
                    bbox["max_longitude"], " ", bbox["min_latitude"], ",", 
                    bbox["min_longitude"], " ", bbox["min_latitude"], "))"),
+  month = 9,12,
   scientificName = "Aves",  # Filter for birds (class Aves)
   hasCoordinate = TRUE     # Filter for records with coordinates
 )
@@ -26,30 +29,6 @@ unique_species <- unique(occ_search_result$data$species)
 
 # Display the list of unique bird species
 print(unique_species)
-# Install and load the required packages
-install.packages("rgbif")
-install.packages("leaflet")
-library(rgbif)
-library(leaflet)
-
-# Define the bounding box coordinates for Parc naturel Hautes Fagnes-Eifel
-bbox <- c(
-  min_longitude = 6.1064,
-  min_latitude = 50.4374,
-  max_longitude = 6.2894,
-  max_latitude = 50.5398
-)
-
-# Search for bird occurrences in the specified bounding box
-occ_search_result <- occ_search(
-  geometry = paste("POLYGON((", bbox["min_longitude"], " ", bbox["min_latitude"], ",", 
-                   bbox["min_longitude"], " ", bbox["max_latitude"], ",", 
-                   bbox["max_longitude"], " ", bbox["max_latitude"], ",", 
-                   bbox["max_longitude"], " ", bbox["min_latitude"], ",", 
-                   bbox["min_longitude"], " ", bbox["min_latitude"], "))"),
-  scientificName = "Aves",  # Filter for birds (class Aves)
-  hasCoordinate = TRUE     # Filter for records with coordinates
-)
 
 # Create a leaflet map
 map <- leaflet() %>%
