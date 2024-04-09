@@ -1,0 +1,81 @@
+# Install and load the required packages
+install.packages(c("shiny", "rgbif", "leaflet"))
+
+rm(list=ls())
+# Load the required libraries
+library(shiny)
+library(rgbif)
+library(leaflet)
+
+# Define function to search for occurrences in a specified clade within a bounding box
+search_occurrences <- function(bbox, clade) {
+  occ_search_result <- occ_search(
+    geometry = paste("POLYGON((", bbox["min_longitude"], " ", bbox["min_latitude"], ",", 
+                     bbox["min_longitude"], " ", bbox["max_latitude"], ",", 
+                     bbox["max_longitude"], " ", bbox["max_latitude"], ",", 
+                     bbox["max_longitude"], " ", bbox["min_latitude"], ",", 
+                     bbox["min_longitude"], " ", bbox["min_latitude"], "))"),
+    month = 9, 12,
+    scientificName = clade,
+    hasCoordinate = TRUE
+  )
+  return(occ_search_result)
+}
+
+# Define UI
+# Define UI
+ui <- fluidPage(
+  titlePanel("Species Distribution Viewer"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("clade", "Choose a clade:",
+                  choices = c("Aves", "Coleoptera", "Amphibia", "Plantae", "Mammalia", "Actinopterygii", "Insecta"),
+                  selected = "Aves"),
+      numericInput("min_longitude", "Minimum Longitude:", value = 5.919477),
+      numericInput("max_longitude", "Maximum Longitude:", value = 6.2894),
+      numericInput("min_latitude", "Minimum Latitude:", value = 50.4374),
+      numericInput("max_latitude", "Maximum Latitude:", value = 50.7)
+    ),
+    mainPanel(
+      leafletOutput("map")
+    )
+  )
+)
+
+
+# Define server logic
+server <- function(input, output) {
+  # Render the leaflet map based on user's clade selection and bounding box coordinates
+  output$map <- renderLeaflet({
+    clade <- input$clade
+    bbox <- c(
+      min_longitude = input$min_longitude,
+      min_latitude = input$min_latitude,
+      max_longitude = input$max_longitude,
+      max_latitude = input$max_latitude
+    )
+    
+    occ_search_result <- search_occurrences(bbox, clade)
+    
+    leaflet() %>%
+      addTiles() %>%
+      addCircleMarkers(
+        data = occ_search_result$data,
+        lng = ~decimalLongitude,
+        lat = ~decimalLatitude,
+        popup = ~species,
+        radius = 5,
+        color = "blue",
+        fillOpacity = 0.7
+      ) %>%
+      setView(
+        lng = mean(bbox[c("min_longitude", "max_longitude")]),
+        lat = mean(bbox[c("min_latitude", "max_latitude")]),
+        zoom = 14
+      )
+  })
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+
